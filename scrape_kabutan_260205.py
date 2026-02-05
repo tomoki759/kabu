@@ -5,6 +5,12 @@ import pandas as pd
 import time
 from datetime import datetime
 
+import os
+import json
+from google.oauth2 import service_account
+from googleapiclient.discovery import build
+from googleapiclient.http import MediaFileUpload
+
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
@@ -117,7 +123,32 @@ def scrape_minkabu_performance_selenium(code: str, driver):
         print(f"[minkabu selenium error] {code}: {e}")
         return None
 
+def upload_to_gdrive(csv_path, filename, folder_id):
+    creds_info = json.loads(os.environ["GDRIVE_SERVICE_ACCOUNT_JSON"])
 
+    creds = service_account.Credentials.from_service_account_info(
+        creds_info,
+        scopes=["https://www.googleapis.com/auth/drive"]
+    )
+
+    service = build("drive", "v3", credentials=creds)
+
+    file_metadata = {
+        "name": filename,
+        "parents": [folder_id]
+    }
+
+    media = MediaFileUpload(
+        csv_path,
+        mimetype="text/csv",
+        resumable=False
+    )
+
+    service.files().create(
+        body=file_metadata,
+        media_body=media,
+        fields="id"
+    ).execute()
 
 # ---------------------------
 # main
@@ -149,7 +180,15 @@ if __name__ == "__main__":
 
 
     today = datetime.today().strftime("%Y%m%d")
-    filename = f"kabutan_52w_{today}.csv"
+    csv_name = f"kabutan_52w_{today}.csv"
 
-    df.to_csv(filename, index=False, encoding="utf-8-sig")
-    print(f"\nSaved: {filename}")
+    df.to_csv(csv_name, index=False, encoding="utf-8-sig")
+
+    GDRIVE_FOLDER_ID = "1gfso7YvjiclmQ5OdA8w9v3SpTZjGCe_W"
+
+    upload_to_gdrive(
+        csv_path=csv_name,
+        filename=csv_name,
+        folder_id=GDRIVE_FOLDER_ID
+    )
+
