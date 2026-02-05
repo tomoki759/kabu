@@ -192,3 +192,4 @@ if __name__ == "__main__":
         folder_id=GDRIVE_FOLDER_ID
     )
 
+    print(f"[OK] Uploaded to Google Drive: {csv_name}")
