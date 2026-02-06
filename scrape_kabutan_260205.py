@@ -155,41 +155,49 @@ def upload_to_gdrive(csv_path, filename, folder_id):
 # ---------------------------
 
 if __name__ == "__main__":
-
-    df = scrape_all_kabutan_52w(max_pages=15)
-    print(f"\n52週高値銘柄数: {len(df)}")
+    try:
+        
+        df = scrape_all_kabutan_52w(max_pages=15)
+        print(f"\n52週高値銘柄数: {len(df)}")
+        
+        # Selenium 起動
+        options = Options()
+        options.add_argument("--headless")
+        options.add_argument("--disable-gpu")
+        options.add_argument("--no-sandbox")
     
-    # Selenium 起動
-    options = Options()
-    options.add_argument("--headless")
-    options.add_argument("--disable-gpu")
-    options.add_argument("--no-sandbox")
-
-    driver = webdriver.Chrome(options=options)
-
-    ratings = []
-    for i, code in enumerate(df["code"], 1):
-        print(f"[{i}/{len(df)}] minkabu selenium scraping: {code}")
-        rating = scrape_minkabu_performance_selenium(code, driver)
-        ratings.append(rating)
-        time.sleep(1.5)  # ★重要：アクセス間隔
-
-    driver.quit()
+        driver = webdriver.Chrome(options=options)
     
-    df["performance_rating"] = ratings
+        ratings = []
+        for i, code in enumerate(df["code"], 1):
+            print(f"[{i}/{len(df)}] minkabu selenium scraping: {code}")
+            rating = scrape_minkabu_performance_selenium(code, driver)
+            ratings.append(rating)
+            time.sleep(1.5)  # ★重要：アクセス間隔
+    
+        driver.quit()
+        
+        df["performance_rating"] = ratings
+    
+    
+        today = datetime.today().strftime("%Y%m%d")
+        csv_name = f"kabutan_52w_{today}.csv"
+    
+        df.to_csv(csv_name, index=False, encoding="utf-8-sig")
+    
+        GDRIVE_FOLDER_ID = "1gfso7YvjiclmQ5OdA8w9v3SpTZjGCe_W"
+    
+        upload_to_gdrive(
+            csv_path=csv_name,
+            filename=csv_name,
+            folder_id=GDRIVE_FOLDER_ID
+        )
+    
+        print(f"[OK] Uploaded to Google Drive: {csv_name}")
 
+     except Exception as e:
+        import traceback
+        print("🔥 FATAL ERROR 🔥", flush=True)
+        traceback.print_exc()
+        raise
 
-    today = datetime.today().strftime("%Y%m%d")
-    csv_name = f"kabutan_52w_{today}.csv"
-
-    df.to_csv(csv_name, index=False, encoding="utf-8-sig")
-
-    GDRIVE_FOLDER_ID = "1gfso7YvjiclmQ5OdA8w9v3SpTZjGCe_W"
-
-    upload_to_gdrive(
-        csv_path=csv_name,
-        filename=csv_name,
-        folder_id=GDRIVE_FOLDER_ID
-    )
-
-    print(f"[OK] Uploaded to Google Drive: {csv_name}")
