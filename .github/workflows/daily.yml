@@ -16,6 +16,20 @@ jobs:
         with:
           python-version: "3.10"
 
+      # ★ これを追加（超重要）
+      - name: Install Chrome dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libnss3 \
+            libxss1 \
+            libasound2 \
+            libgbm1 \
+            libgtk-3-0 \
+            libu2f-udev \
+            fonts-liberation \
+            xdg-utils
+
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
