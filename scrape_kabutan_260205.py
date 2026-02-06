@@ -165,9 +165,11 @@ if __name__ == "__main__":
         options.add_argument("--headless")
         options.add_argument("--disable-gpu")
         options.add_argument("--no-sandbox")
-    
+
+        print("[INFO] Starting Selenium", flush=True)
         driver = webdriver.Chrome(options=options)
-    
+        print("[INFO] Started Selenium", flush=True)
+        
         ratings = []
         for i, code in enumerate(df["code"], 1):
             print(f"[{i}/{len(df)}] minkabu selenium scraping: {code}")
@@ -200,4 +202,5 @@ if __name__ == "__main__":
         print("🔥 FATAL ERROR 🔥", flush=True)
         traceback.print_exc()
         raise
+
 
