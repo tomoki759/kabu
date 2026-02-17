@@ -147,7 +147,8 @@ def upload_to_gdrive(csv_path, filename, folder_id):
     service.files().create(
         body=file_metadata,
         media_body=media,
-        fields="id"
+        fields="id",
+        supportsAllDrives=True
     ).execute()
 
 # ---------------------------
@@ -155,6 +156,8 @@ def upload_to_gdrive(csv_path, filename, folder_id):
 # ---------------------------
 
 if __name__ == "__main__":
+    TEST_MODE = True
+    TEST_LIMIT = 5
     try:
         
         df = scrape_all_kabutan_52w(max_pages=15)
@@ -171,7 +174,7 @@ if __name__ == "__main__":
         print("[INFO] Started Selenium", flush=True)
         
         ratings = []
-        for i, code in enumerate(df["code"], 1):
+        for i, code in enumerate(df["code"].head(TEST_LIMIT if TEST_MODE else len(df)), 1):
             print(f"[{i}/{len(df)}] minkabu selenium scraping: {code}")
             rating = scrape_minkabu_performance_selenium(code, driver)
             ratings.append(rating)
