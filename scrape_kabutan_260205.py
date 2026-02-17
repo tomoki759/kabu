@@ -197,7 +197,7 @@ if __name__ == "__main__":
     
         print(f"[OK] Uploaded to Google Drive: {csv_name}")
 
-     except Exception as e:
+    except Exception as e:
         import traceback
         print("🔥 FATAL ERROR 🔥", flush=True)
         traceback.print_exc()
