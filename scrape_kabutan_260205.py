@@ -7,7 +7,7 @@ from datetime import datetime
 
 import os
 import json
-from google.oauth2 import service_account
+from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 
@@ -123,12 +123,15 @@ def scrape_minkabu_performance_selenium(code: str, driver):
         print(f"[minkabu selenium error] {code}: {e}")
         return None
 
-def upload_to_gdrive(csv_path, filename, folder_id):
-    creds_info = json.loads(os.environ["GDRIVE_SERVICE_ACCOUNT_JSON"])
+def upload_to_gdrive(filename, filepath, folder_id):
 
-    creds = service_account.Credentials.from_service_account_info(
-        creds_info,
-        scopes=["https://www.googleapis.com/auth/drive"]
+    creds = Credentials(
+        None,
+        refresh_token=os.environ["GOOGLE_REFRESH_TOKEN"],
+        client_id=os.environ["GOOGLE_CLIENT_ID"],
+        client_secret=os.environ["GOOGLE_CLIENT_SECRET"],
+        token_uri="https://oauth2.googleapis.com/token",
+        scopes=["https://www.googleapis.com/auth/drive.file"]
     )
 
     service = build("drive", "v3", credentials=creds)
@@ -138,18 +141,15 @@ def upload_to_gdrive(csv_path, filename, folder_id):
         "parents": [folder_id]
     }
 
-    media = MediaFileUpload(
-        csv_path,
-        mimetype="text/csv",
-        resumable=False
-    )
+    media = MediaFileUpload(filepath, resumable=True)
 
-    service.files().create(
+    file = service.files().create(
         body=file_metadata,
         media_body=media,
-        fields="id",
-        supportsAllDrives=True
+        fields="id"
     ).execute()
+
+    print("Uploaded file ID:", file.get("id"))
 
 # ---------------------------
 # main
