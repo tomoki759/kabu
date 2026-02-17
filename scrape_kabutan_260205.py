@@ -156,7 +156,7 @@ def upload_to_gdrive(filename, filepath, folder_id):
 # ---------------------------
 
 if __name__ == "__main__":
-    TEST_MODE = True
+    TEST_MODE = False
     TEST_LIMIT = 5
     try:
         
@@ -208,6 +208,7 @@ if __name__ == "__main__":
         print("🔥 FATAL ERROR 🔥", flush=True)
         traceback.print_exc()
         raise
+
 
 
 
