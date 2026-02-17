@@ -131,7 +131,7 @@ def upload_to_gdrive(filename, filepath, folder_id):
         client_id=os.environ["GOOGLE_CLIENT_ID"],
         client_secret=os.environ["GOOGLE_CLIENT_SECRET"],
         token_uri="https://oauth2.googleapis.com/token",
-        scopes=["https://www.googleapis.com/auth/drive.file"]
+        scopes=["https://www.googleapis.com/auth/drive"]
     )
 
     service = build("drive", "v3", credentials=creds)
@@ -208,5 +208,6 @@ if __name__ == "__main__":
         print("🔥 FATAL ERROR 🔥", flush=True)
         traceback.print_exc()
         raise
+
 
 
