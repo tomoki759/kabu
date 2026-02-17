@@ -1,5 +1,10 @@
 name: Daily Kabutan Screening
 
+env:
+  GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+  GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+  GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
+  
 on:
   schedule:
     - cron: "0 7 * * 1-5"   # 平日16:00（JST）
