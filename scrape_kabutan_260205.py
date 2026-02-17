@@ -173,6 +173,9 @@ if __name__ == "__main__":
         driver = webdriver.Chrome(options=options)
         print("[INFO] Started Selenium", flush=True)
         
+        if TEST_MODE:
+            df = df.head(TEST_LIMIT).copy()
+    
         ratings = []
         for i, code in enumerate(df["code"].head(TEST_LIMIT if TEST_MODE else len(df)), 1):
             print(f"[{i}/{len(df)}] minkabu selenium scraping: {code}")
