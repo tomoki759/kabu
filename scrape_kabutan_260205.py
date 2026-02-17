@@ -196,8 +196,8 @@ if __name__ == "__main__":
         GDRIVE_FOLDER_ID = "1gfso7YvjiclmQ5OdA8w9v3SpTZjGCe_W"
     
         upload_to_gdrive(
-            csv_path=csv_name,
             filename=csv_name,
+            filepath=csv_name,
             folder_id=GDRIVE_FOLDER_ID
         )
     
