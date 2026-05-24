@@ -105,19 +105,21 @@ def scrape_minkabu_performance_selenium(code: str, driver):
     try:
         wait = WebDriverWait(driver, 10)
 
-        # 「業績評価」というテキストを含むdivを起点にする
-        label = wait.until(
+        # 1. 「業績評価」の文字を起点にして、その「1つ上の階層の親div（2つのdivを包んでいる箱）」を取得
+        card_element = wait.until(
             EC.presence_of_element_located(
-                (By.XPATH, "//div[contains(text(),'業績評価')]")
+                (By.XPATH, "//div[contains(text(),'業績評価')]/..")
             )
         )
 
-        # その直後にある評価テキスト
-        value = label.find_element(
-            By.XPATH, "following-sibling::div"
-        )
+        # 2. 箱の中にあるすべてのテキストを合体して取得
+        # （これで「業績評価\n晴れ時々曇り」のような文字列が取れます）
+        full_text = card_element.text.strip()
 
-        return value.text.strip()
+        # 3. 「業績評価」という見出し文字を消して、純粋な評価内容（「晴れ時々曇り」）だけを抽出
+        rating_value = full_text.replace("業績評価", "").strip()
+
+        return rating_value
 
     except Exception as e:
         print(f"[minkabu selenium error] {code}: {e}")
@@ -156,13 +158,13 @@ def upload_to_gdrive(filename, filepath, folder_id):
 # ---------------------------
 
 if __name__ == "__main__":
-    TEST_MODE = False
+    TEST_MODE = True
     TEST_LIMIT = 5
     try:
-        
+
         df = scrape_all_kabutan_52w(max_pages=15)
         print(f"\n52週高値銘柄数: {len(df)}")
-        
+
         # Selenium 起動
         options = Options()
         options.add_argument("--headless")
@@ -172,35 +174,35 @@ if __name__ == "__main__":
         print("[INFO] Starting Selenium", flush=True)
         driver = webdriver.Chrome(options=options)
         print("[INFO] Started Selenium", flush=True)
-        
+
         if TEST_MODE:
             df = df.head(TEST_LIMIT).copy()
-    
+
         ratings = []
         for i, code in enumerate(df["code"].head(TEST_LIMIT if TEST_MODE else len(df)), 1):
             print(f"[{i}/{len(df)}] minkabu selenium scraping: {code}")
             rating = scrape_minkabu_performance_selenium(code, driver)
             ratings.append(rating)
             time.sleep(1.5)  # ★重要：アクセス間隔
-    
+
         driver.quit()
-        
+
         df["performance_rating"] = ratings
-    
-    
+
+
         today = datetime.today().strftime("%Y%m%d")
         csv_name = f"kabutan_52w_{today}.csv"
-    
+
         df.to_csv(csv_name, index=False, encoding="utf-8-sig")
-    
+
         GDRIVE_FOLDER_ID = "1gfso7YvjiclmQ5OdA8w9v3SpTZjGCe_W"
-    
+
         upload_to_gdrive(
             filename=csv_name,
             filepath=csv_name,
             folder_id=GDRIVE_FOLDER_ID
         )
-    
+
         print(f"[OK] Uploaded to Google Drive: {csv_name}")
 
     except Exception as e:
@@ -208,7 +210,3 @@ if __name__ == "__main__":
         print("🔥 FATAL ERROR 🔥", flush=True)
         traceback.print_exc()
         raise
-
-
-
-
