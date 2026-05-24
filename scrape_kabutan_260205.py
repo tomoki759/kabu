@@ -83,7 +83,7 @@ def scrape_kabutan_52w_page(page: int, driver):
     return results
 
 
-def scrape_all_kabutan_52w(driver, max_pages=15, sleep_sec=1.5):
+def scrape_all_kabutan_52w(driver, max_pages=15, sleep_sec=2.0):
     all_records = []
 
     for page in range(1, max_pages + 1):
@@ -170,6 +170,8 @@ if __name__ == "__main__":
         options.add_argument("--disable-dev-shm-usage")
         options.add_argument("--remote-debugging-pipe")
 
+        options.page_load_strategy = 'eager'
+        
         # 1. 本物の人間（WindowsのChrome）に見せかけるためのUser-Agentを設定
         options.add_argument(
             "--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
