@@ -170,6 +170,8 @@ if __name__ == "__main__":
         options.add_argument("--headless")
         options.add_argument("--disable-gpu")
         options.add_argument("--no-sandbox")
+        options.add_argument("--disable-dev-shm-usage")  # メモリ不足によるクラッシュ防止
+        options.add_argument("--remote-debugging-pipe")  # ★GitHub Actionsでのクラッシュ防止に超重要！
 
         print("[INFO] Starting Selenium", flush=True)
         driver = webdriver.Chrome(options=options)
