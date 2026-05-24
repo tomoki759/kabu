@@ -38,7 +38,14 @@ def scrape_kabutan_52w_page(page: int, driver):
 
     # requests の代わりに Selenium でページを開く（ブロックを回避）
     driver.get(url)
-    time.sleep(2)  # ページの読み込みを少し待つ
+    # ★ ページ内のテーブル（銘柄一覧）が読み込まれるまで最大10秒待機する処理を追加
+    try:
+        wait = WebDriverWait(driver, 10)
+        wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "table.stock_table")))
+    except Exception as e:
+        print(f"[WARN] Table not found on page {page}: {e}")
+    
+    time.sleep(1) # 念のためのマージン
     
     # 開いたページのHTMLを BeautifulSoup に渡す
     soup = BeautifulSoup(driver.page_source, "html.parser")
