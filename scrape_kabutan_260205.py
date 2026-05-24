@@ -159,7 +159,7 @@ def upload_to_gdrive(filename, filepath, folder_id):
 # ---------------------------
 
 if __name__ == "__main__":
-    TEST_MODE = True  # まずはテストモードで！
+    TEST_MODE = False  # まずはテストモードで！
     TEST_LIMIT = 5
     try:
         # 1. 最初に Selenium を起動する
