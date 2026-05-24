@@ -32,24 +32,17 @@ HEADERS = {
 # ---------------------------
 # 52週高値一覧ページ
 # ---------------------------
-def scrape_kabutan_52w_page(page: int):
-    url = "https://kabutan.jp/warning/"
-    params = {
-        "mode": "3_3",
-        "market": "0",
-        "capitalization": "-1",
-        "dispmode": "normal",
-        "stc": "code",
-        "stm": "0",
-        "page": page
-    }
+def scrape_kabutan_52w_page(page: int, driver):
+    url = f"https://kabutan.jp/warning/?mode=3_3&market=0&capitalization=-1&dispmode=normal&stc=code&stm=0&page={page}"
 
-    r = requests.get(url, params=params, headers=HEADERS, timeout=10)
-    r.raise_for_status()
-    soup = BeautifulSoup(r.text, "html.parser")
+    # requests の代わりに Selenium でページを開く（ブロックを回避）
+    driver.get(url)
+    time.sleep(2)  # ページの読み込みを少し待つ
+    
+    # 開いたページのHTMLを BeautifulSoup に渡す
+    soup = BeautifulSoup(driver.page_source, "html.parser")
 
     results = []
-
     for row in soup.select("table.stock_table tbody tr"):
         tds = row.find_all("td")
         name_tag = row.select_one("th.tal")
@@ -82,12 +75,13 @@ def scrape_kabutan_52w_page(page: int):
     return results
 
 
-def scrape_all_kabutan_52w(max_pages=15, sleep_sec=1.5):
+def scrape_all_kabutan_52w(driver, max_pages=15, sleep_sec=1.5):
     all_records = []
 
     for page in range(1, max_pages + 1):
         print(f"Scraping list page {page}...")
-        records = scrape_kabutan_52w_page(page)
+        # driver を渡す
+        records = scrape_kabutan_52w_page(page, driver)
 
         if not records:
             break
@@ -157,34 +151,39 @@ def upload_to_gdrive(filename, filepath, folder_id):
 # ---------------------------
 
 if __name__ == "__main__":
-    TEST_MODE = True
+    TEST_MODE = True  # まずはテストモードで！
     TEST_LIMIT = 5
     try:
-
-        df = scrape_all_kabutan_52w(max_pages=15)
-        print(f"\n52週高値銘柄数: {len(df)}")
-
-        # Selenium 起動
+        # 1. 最初に Selenium を起動する
         options = Options()
         options.add_argument("--headless")
         options.add_argument("--disable-gpu")
         options.add_argument("--no-sandbox")
+        options.add_argument("--disable-dev-shm-usage")
+        options.add_argument("--remote-debugging-pipe")
+
+        if "CHROME_BIN" in os.environ:
+            options.binary_location = os.environ["CHROME_BIN"]
 
         print("[INFO] Starting Selenium", flush=True)
-        # ★ここを Service を使う形に書き換えます
         service = Service(ChromeDriverManager().install())
         driver = webdriver.Chrome(service=service, options=options)
         print("[INFO] Started Selenium", flush=True)
-
+        
+        # 2. 起動した driver を渡して株探のリストを取得する（ブロック回避）
+        df = scrape_all_kabutan_52w(driver, max_pages=15)
+        print(f"\n52週高値銘柄数: {len(df)}")
+        
         if TEST_MODE:
             df = df.head(TEST_LIMIT).copy()
-
+    
+        # 3. そのままみんかぶのスクレイピングに移行する
         ratings = []
         for i, code in enumerate(df["code"].head(TEST_LIMIT if TEST_MODE else len(df)), 1):
             print(f"[{i}/{len(df)}] minkabu selenium scraping: {code}")
             rating = scrape_minkabu_performance_selenium(code, driver)
             ratings.append(rating)
-            time.sleep(1.5)  # ★重要：アクセス間隔
+            time.sleep(1.5)
 
         driver.quit()
 
