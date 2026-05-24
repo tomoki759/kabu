@@ -164,11 +164,23 @@ if __name__ == "__main__":
     try:
         # 1. 最初に Selenium を起動する
         options = Options()
-        options.add_argument("--headless")
+        options.add_argument("--headless=new")  # 新しい安定版ヘッドレスモードを指定
         options.add_argument("--disable-gpu")
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")
         options.add_argument("--remote-debugging-pipe")
+
+        # 1. 本物の人間（WindowsのChrome）に見せかけるためのUser-Agentを設定
+        options.add_argument(
+            "--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/120.0.0.0 Safari/537.36"
+        )
+
+        # 2. 「自動化ツール（WebDriver）によって操作されています」というフラグを消す設定
+        options.add_argument("--disable-blink-features=AutomationControlled")
+        options.add_experimental_option("excludeSwitches", ["enable-automation"])
+        options.add_experimental_option("useAutomationExtension", False)
 
         if "CHROME_BIN" in os.environ:
             options.binary_location = os.environ["CHROME_BIN"]
@@ -176,7 +188,20 @@ if __name__ == "__main__":
         print("[INFO] Starting Selenium", flush=True)
         service = Service(ChromeDriverManager().install())
         driver = webdriver.Chrome(service=service, options=options)
-        print("[INFO] Started Selenium", flush=True)
+        
+        # 3. JavaScript側でも自動化フラグを完全に「偽装」する命令を実行
+        driver.execute_cdp_cmd(
+            "Page.addScriptToEvaluateOnNewDocument",
+            {
+                "source": """
+                    Object.defineProperty(navigator, 'webdriver', {
+                        get: () => undefined
+                    })
+                """
+            }
+        )
+        print("[INFO] Started Selenium with stealth settings", flush=True)
+        
         
         # 2. 起動した driver を渡して株探のリストを取得する（ブロック回避）
         df = scrape_all_kabutan_52w(driver, max_pages=15)
