@@ -17,7 +17,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-
+from webdriver_manager.chrome import ChromeDriverManager  # ★これを追加
 
 HEADERS = {
     "User-Agent": (
@@ -174,7 +174,9 @@ if __name__ == "__main__":
         options.add_argument("--remote-debugging-pipe")  # ★GitHub Actionsでのクラッシュ防止に超重要！
 
         print("[INFO] Starting Selenium", flush=True)
-        driver = webdriver.Chrome(options=options)
+        # ★ここを Service を使う形に書き換えます
+        service = Service(ChromeDriverManager().install())
+        driver = webdriver.Chrome(service=service, options=options)
         print("[INFO] Started Selenium", flush=True)
 
         if TEST_MODE:
