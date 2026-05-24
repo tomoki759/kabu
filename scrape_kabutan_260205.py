@@ -17,7 +17,6 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from webdriver_manager.chrome import ChromeDriverManager  # ★これを追加
 
 HEADERS = {
     "User-Agent": (
@@ -170,8 +169,6 @@ if __name__ == "__main__":
         options.add_argument("--headless")
         options.add_argument("--disable-gpu")
         options.add_argument("--no-sandbox")
-        options.add_argument("--disable-dev-shm-usage")  # メモリ不足によるクラッシュ防止
-        options.add_argument("--remote-debugging-pipe")  # ★GitHub Actionsでのクラッシュ防止に超重要！
 
         print("[INFO] Starting Selenium", flush=True)
         # ★ここを Service を使う形に書き換えます
